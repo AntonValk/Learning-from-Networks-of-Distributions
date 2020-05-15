@@ -9,8 +9,10 @@ import torch
 import torch.nn.functional as F
 import torch.optim as optim
 
-from pygcn.utils import load_data, accuracy
-from pygcn.models import GCN
+from utils import load_data, accuracy
+from models import GCN
+
+from preprocess import preprocessing_graph_1
 
 # Training settings
 parser = argparse.ArgumentParser()
@@ -25,7 +27,7 @@ parser.add_argument('--lr', type=float, default=0.01,
                     help='Initial learning rate.')
 parser.add_argument('--weight_decay', type=float, default=5e-4,
                     help='Weight decay (L2 loss on parameters).')
-parser.add_argument('--hidden', type=int, default=16,
+parser.add_argument('--hidden', type=int, default=32,
                     help='Number of hidden units.')
 parser.add_argument('--dropout', type=float, default=0.5,
                     help='Dropout rate (1 - keep probability).')
@@ -39,7 +41,7 @@ if args.cuda:
     torch.cuda.manual_seed(args.seed)
 
 # Load data
-adj, features, labels, idx_train, idx_val, idx_test = load_data()
+adj, features, labels, idx_train, idx_val, idx_test = preprocessing_graph_1()
 
 # Model and optimizer
 model = GCN(nfeat=features.shape[1],

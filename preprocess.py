@@ -1,8 +1,10 @@
+import torch
 import numpy as np
 import pandas as pd
 import seaborn as sns
 import networkx as nx 
 from scipy import sparse
+import scipy.sparse as sp
 import scipy.spatial.distance
 import matplotlib.pyplot as plt
 from sklearn import preprocessing
@@ -84,8 +86,46 @@ def preprocess_data_2(fraction_test = 0.333):
 	return train_X, test_X, train_y, test_y
 
 
+def encode_onehot(labels):
+    classes = set(labels)
+    classes_dict = {c: np.identity(len(classes))[i, :] for i, c in
+                    enumerate(classes)}
+    labels_onehot = np.array(list(map(classes_dict.get, labels)),
+                             dtype=np.int32)
+    return labels_onehot
+
+
+def normalize(mx):
+    """Row-normalize sparse matrix"""
+    rowsum = np.array(mx.sum(1))
+    r_inv = np.power(rowsum, -1).flatten()
+    r_inv[np.isinf(r_inv)] = 0.
+    r_mat_inv = sp.diags(r_inv)
+    mx = r_mat_inv.dot(mx)
+    return mx
+
+
+def accuracy(output, labels):
+    preds = output.max(1)[1].type_as(labels)
+    correct = preds.eq(labels).double()
+    correct = correct.sum()
+    return correct / len(labels)
+
+
+def sparse_mx_to_torch_sparse_tensor(sparse_mx):
+    """Convert a scipy sparse matrix to a torch sparse tensor."""
+    sparse_mx = sparse_mx.tocoo().astype(np.float32)
+    indices = torch.from_numpy(
+        np.vstack((sparse_mx.row, sparse_mx.col)).astype(np.int64))
+    values = torch.from_numpy(sparse_mx.data)
+    shape = torch.Size(sparse_mx.shape)
+    return torch.sparse.FloatTensor(indices, values, shape)
+
+
+
 def preprocessing_graph_1(fraction_test = 0.333):
 	df = pd.read_json(open("train.json", "r"))
+	df = df[:10000]
 
 	df["num_photos"] = df["photos"].apply(len)
 	df["num_features"] = df["features"].apply(len)
@@ -143,15 +183,32 @@ def preprocessing_graph_1(fraction_test = 0.333):
 	    nx.draw_networkx(G, pos, node_size=10, with_labels=False, ax=ax)
 	    ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
 
-	dist_arr = get_dist_sp(-1)
+	dist_arr = get_dist_sp(10000)
 	adj = fast_knn(5, dist_arr)
-	G = nx.from_numpy_matrix(adj)
-	pos = get_pos_dict(-1)
-	nx.set_node_attributes(G, pos, 'Coordinates')
-	nx.draw(G, pos, node_size=10, with_labels=False)
-	plt.show()
-	X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=fraction_test)
+	adj = sp.coo_matrix(adj, dtype = np.float32)
+	adj = adj + adj.T.multiply(adj.T > adj) - adj.multiply(adj.T > adj)
+	# G = nx.from_numpy_matrix(adj)
+	# pos = get_pos_dict(100)
+	# nx.set_node_attributes(G, pos, 'Coordinates')
+	# nx.draw(G, pos, node_size=10, with_labels=False)
+	# plt.show()
+	# X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=fraction_test)
+	idx_train = range(6000)
+	idx_val = range(6000, 7000)
+	idx_test = range(7000, 10000)
+	# return X_train, X_val, y_train, y_val, adj
+	y = encode_onehot(y)
+	X = normalize(X)
 
-	return X_train, X_val, y_train, y_val, G
+	X = torch.FloatTensor(np.array(X))
+	y = torch.LongTensor(np.where(y)[1])
+	adj = sparse_mx_to_torch_sparse_tensor(adj)
+	
+	idx_train = torch.LongTensor(idx_train)
+	idx_val = torch.LongTensor(idx_val)
+	idx_test = torch.LongTensor(idx_test)
+
+	return adj, X, y, idx_train, idx_val, idx_test
+
 
 preprocessing_graph_1()
