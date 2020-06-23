@@ -45,6 +45,10 @@ plt.show()
 in_nyc = gpd.sjoin(gdf, boros, how="inner", op='intersects')
 # in_nyc = boros.contains(geos)
 
-print(list(in_nyc))
-print(in_nyc['BoroName'])
-# print(in_nyc.value_counts())
+df = pd.DataFrame(in_nyc)
+df = df[['bathrooms', 'bedrooms', 'latitude', 'longitude', 'price', 'num_photos', 'num_features', 'num_description_words', 'created_month', 'created_day', 'BoroName']]
+
+# print(list(in_nyc))
+# print(in_nyc['BoroName'])
+
+print(df['BoroName'].value_counts())
