@@ -5,10 +5,12 @@ import shapely.geometry as geoms
 import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt 
-from preprocess import preprocess_data_1
+from preprocess import preprocess_data_geog
+from sklearn.model_selection import train_test_split
 
 
-train_X, test_X, train_y, test_y = preprocess_data_1()
+
+df = preprocess_data_geog()
 
 
 nybb_path = gpd.datasets.get_path('nybb')
@@ -22,14 +24,14 @@ boros.plot()
 plt.show()
 
 
-geos = gpd.GeoSeries(train_X[['longitude', 'latitude']]\
+geos = gpd.GeoSeries(df[['longitude', 'latitude']]\
             .apply(lambda x: geoms.Point((x.longitude, x.latitude)), axis=1), \
             crs={'init': 'epsg:4326'})
 # geos = geos.to_crs(epsg=2263)
 
 # geos = gpd.GeoDataFrame(geos, geometry=gpd.points_from_xy(geos.longitude, geos.latitude))
 
-gdf = gpd.GeoDataFrame(train_X, geometry=geos)
+gdf = gpd.GeoDataFrame(df, geometry=geos)
 
 
 print(geos)
@@ -45,10 +47,21 @@ plt.show()
 in_nyc = gpd.sjoin(gdf, boros, how="inner", op='intersects')
 # in_nyc = boros.contains(geos)
 
-df = pd.DataFrame(in_nyc)
-df = df[['bathrooms', 'bedrooms', 'latitude', 'longitude', 'price', 'num_photos', 'num_features', 'num_description_words', 'created_month', 'created_day', 'BoroName']]
+nyc = pd.DataFrame(in_nyc)
+
+num_feats = ["bathrooms", "bedrooms", "latitude", "longitude", "price",
+             "num_photos", "num_features", "num_description_words",
+             "created_month", "created_day", "BoroName"]
+X = nyc[num_feats]
+y = nyc["interest_level"]
 
 # print(list(in_nyc))
 # print(in_nyc['BoroName'])
 
-print(df['BoroName'].value_counts())
+print(X['BoroName'].value_counts())
+
+pd.DataFrame.to_csv(nyc)
+
+X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.33)
+
+print(X_train.shape, y_train.shape)

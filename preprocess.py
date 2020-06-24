@@ -15,6 +15,11 @@ from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 def preprocess_data_1(fraction_test = 0.333):
 	df = pd.read_json(open("train.json", "r"))
 
+	# df = df[df.latitude >= 40]
+	# df = df[df.latitude <= 42]
+	# df = df[df.longitude >= -75]
+	# df = df[df.longitude <= -73]
+
 	df["num_photos"] = df["photos"].apply(len)
 	df["num_features"] = df["features"].apply(len)
 	df["num_description_words"] = df["description"].apply(lambda x: len(x.split(" ")))
@@ -30,6 +35,25 @@ def preprocess_data_1(fraction_test = 0.333):
 
 	X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=fraction_test)
 	return X_train, X_val, y_train, y_val
+
+
+def preprocess_data_geog(fraction_test = 0.333):
+	df = pd.read_json(open("train.json", "r"))
+
+	# df = df[df.latitude >= 40]
+	# df = df[df.latitude <= 42]
+	# df = df[df.longitude >= -75]
+	# df = df[df.longitude <= -73]
+
+	df["num_photos"] = df["photos"].apply(len)
+	df["num_features"] = df["features"].apply(len)
+	df["num_description_words"] = df["description"].apply(lambda x: len(x.split(" ")))
+	df["created"] = pd.to_datetime(df["created"])
+	df["created_month"] = df["created"].dt.month
+	df["created_day"] = df["created"].dt.day
+
+	return df
+
 
 # need to fix this there is a bug in this method
 def preprocess_data_2(fraction_test = 0.333):
