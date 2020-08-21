@@ -1,4 +1,5 @@
 import geopandas as gpd
+import networkx as nx
 from geopandas import GeoSeries
 from shapely.geometry import Polygon
 import shapely.geometry as geoms
@@ -40,20 +41,46 @@ districts = districts.to_crs(epsg=4326)
 
 # neighbors = np.union1d(neighbors, overlap)
 
-districts["NEIGHBOURS"] = None  # add column
+districts["neighbours"] = None  # add column
 # districts = districts[districts['boro_cd'] < 200]
 
 
 for index, row in districts.iterrows():  
-    neighbours = districts[districts.geometry.touches(row['geometry'])].boro_cd.tolist() 
-    # neighbours = neighbours.remove(row.boro_cd)
-    districts.at[index, "NEIGHBOURS"] = ", ".join(neighbours)
+    neighbours = districts[districts.geometry.touches(row['geometry'])].boro_cd.to_numpy() 
+    neighbours = neighbours.astype(np.int64)
+    neighbours = neighbours[neighbours < 200]
+    districts.at[index, "neighbours"] = neighbours
 
 districts = districts.astype({'boro_cd': 'int64'})
 districts = districts[districts['boro_cd'] < 200]
 
+ 
+x = np.array(districts['neighbours'])
 
-print(districts[["boro_cd", "NEIGHBOURS"]])
+
+
+
+dicts = {}
+districts = districts.sort_values(by=['boro_cd'])
+
+print(districts[["boro_cd", "neighbours"]])
+
+keys = districts['boro_cd'].to_numpy()
+values = districts['neighbours'].to_numpy()
+
+
+for i,j in zip(keys, values):
+        dicts[i] = j
+# print(dicts)
+
+g = nx.Graph(dicts)
+nx.draw(g, with_labels = True)
+plt.show()
+
+
+adj = nx.adjacency_matrix(g)
+print(adj.todense() + np.eye(districts['boro_cd'].nunique()))
+
 exit()
 
 
@@ -93,29 +120,39 @@ nyc = pd.DataFrame(in_nyc)
 ######################################################### uncomment to plot
 
 
-num_feats = ["bathrooms", "bedrooms", "latitude", "longitude", "price",
+num_feats = ["bathrooms", "bedrooms", "interest_level",
              "num_photos", "num_features", "num_description_words",
-             "created_month", "created_day", "BoroName", "boro_cd" ,"NEIGHBOURS"]
+             "created_month", "created_day", "boro_cd"]
 
-nyc = nyc[nyc['BoroName'] == 'Manhattan']
+# nyc = nyc[nyc['BoroName'] == 'Manhattan']
 # nyc = nyc[nyc['boro_cd'] < 200]
 X = nyc[num_feats]
 # print(X['BoroName'].value_counts())
 # # countries = world[world['continent'] == "South America"]
 # X = X[X['BoroName'] == 'Manhattan']
 # print(X['BoroName'].value_counts())
-y = nyc["interest_level"]
+y = nyc["price"]
 
 
 # print(list(in_nyc))
 # print(in_nyc['BoroName'])
 
-print(X['BoroName'].value_counts())
+# print(X['BoroName'].value_counts())
+
+num_feats_2 = ["bathrooms", "bedrooms", "interest_level",
+             "num_photos", "num_features", "num_description_words",
+             "created_month", "created_day", "boro_cd", "price"]
+
+nyc = nyc[num_feats_2]
+
+nyc.to_csv('districts_data.csv')
+
+print(nyc.head())
+
 print(X['boro_cd'].value_counts())
 
 
-# nyc.to_csv('districts_data.csv')
 
-# X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.33)
+X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.33)
 
-# print(X_train.shape, y_train.shape)
+print(X_train.shape, y_train.shape)
