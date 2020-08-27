@@ -48,11 +48,11 @@ districts["neighbours"] = None  # add column
 for index, row in districts.iterrows():  
     neighbours = districts[districts.geometry.touches(row['geometry'])].boro_cd.to_numpy() 
     neighbours = neighbours.astype(np.int64)
-    neighbours = neighbours[neighbours < 200]
+    neighbours = neighbours[neighbours < 150]
     districts.at[index, "neighbours"] = neighbours
 
 districts = districts.astype({'boro_cd': 'int64'})
-districts = districts[districts['boro_cd'] < 200]
+districts = districts[districts['boro_cd'] < 150]
 
  
 x = np.array(districts['neighbours'])
@@ -74,12 +74,14 @@ for i,j in zip(keys, values):
 # print(dicts)
 
 g = nx.Graph(dicts)
-nx.draw(g, with_labels = True)
-plt.show()
+# nx.draw(g, with_labels = True)
+# plt.show()
 
 
 adj = nx.adjacency_matrix(g)
-print(adj.todense() + np.eye(districts['boro_cd'].nunique()))
+adj = adj.todense() + np.eye(districts['boro_cd'].nunique())
+np.savetxt('adj.txt', adj, delimiter=',')
+
 
 exit()
 
