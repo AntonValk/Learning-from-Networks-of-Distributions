@@ -19,8 +19,6 @@ df = df[df['neighbourhood'].isin(count_list)]
 print(df['neighbourhood'].value_counts().describe())
 
 
-exit()
-
 df = preprocess_data_geog()
 geos = gpd.GeoSeries(df[['longitude', 'latitude']]\
             .apply(lambda x: geoms.Point((x.longitude, x.latitude)), axis=1), \
