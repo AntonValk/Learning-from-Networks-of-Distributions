@@ -1,4 +1,5 @@
 # Property-Demand-Prediction
-A unique solution to 2-sigma's Kaggle challenge
 
-Link to competition: https://www.kaggle.com/c/two-sigma-connect-rental-listing-inquiries
+### Code for my Asilomar 2020 IEEE conference submission.
+
+Link to data: https://www.kaggle.com/c/two-sigma-connect-rental-listing-inquiries
