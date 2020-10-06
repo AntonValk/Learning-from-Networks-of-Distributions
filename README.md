@@ -1,4 +1,4 @@
-# Code for my Asilomar 2020 IEEE conference submission.
+# Code for Asilomar 2020 IEEE conference submission.
 
 ### Property-Demand-Prediction
 
