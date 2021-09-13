@@ -1,4 +1,4 @@
-# Code for Asilomar 2020 IEEE conference submission
+# Code for Asilomar 2020 IEEE Conference Paper
 
 ### Property-Demand-Prediction
 
