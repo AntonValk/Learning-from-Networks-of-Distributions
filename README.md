@@ -2,7 +2,12 @@
 
 ### Property-Demand-Prediction
 
+Link to paper: https://ieeexplore.ieee.org/document/9443270
+
 Link to data: https://www.kaggle.com/c/two-sigma-connect-rental-listing-inquiries
 
-To reproduce the results download train.json from the link and run the python scripts to preprocess that data.
-Then run main.ipynb.
+To reproduce the results download train.json from the link and run the python scripts to preprocess the data.
+Then run `main.ipynb` and `extended_results.ipynb`.
+
+
+
